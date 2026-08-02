@@ -1,0 +1,26 @@
+name = "crowned-in-love"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "public"
+
+# Create with: wrangler d1 create crowned-in-love-orders
+# then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "crowned-in-love-orders"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Create with: wrangler kv namespace create PRODUCTS_CACHE
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "PRODUCTS_CACHE"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+[vars]
+# Update after your first deploy to your real Pages URL or custom domain.
+SITE_URL = "https://crowned-in-love.pages.dev"
+
+# NOT set here on purpose — set these as encrypted secrets instead:
+#   wrangler pages secret put PRINTIFY_API_TOKEN
+#   wrangler pages secret put PRINTIFY_SHOP_ID
+#   wrangler pages secret put STRIPE_SECRET_KEY
+#   wrangler pages secret put STRIPE_WEBHOOK_SECRET
