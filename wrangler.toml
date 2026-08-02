@@ -7,13 +7,13 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "crowned-in-love-orders"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "8db1c54a-6f1a-4a88-a668-8bfd822b6046"
 
 # Create with: wrangler kv namespace create PRODUCTS_CACHE
 # then paste the returned id below.
 [[kv_namespaces]]
 binding = "PRODUCTS_CACHE"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "2e78b05405704ad49cdb62b1aee3765f"
 
 [vars]
 # Update after your first deploy to your real Pages URL or custom domain.
