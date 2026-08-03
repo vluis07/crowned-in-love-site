@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crowned In Love — Faith-based gifts for couples</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="/" class="logo">
+        <svg class="crest" width="26" height="26" viewBox="0 0 60 60"><circle class="ring" cx="30" cy="30" r="27"/><path d="M18 26 L24 34 L30 20 L36 34 L42 26 L40 40 L20 40 Z" fill="var(--gold)"/></svg>
+        Crowned In Love
+      </a>
+      <div class="nav-links">
+        <a href="/#shop">Shop</a>
+        <a href="/cart.html">Cart</a>
+      </div>
+      <div class="nav-actions">
+        <a href="/cart.html" class="icon-btn" aria-label="Cart">♡<span class="cart-badge" data-cart-count>0</span></a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section style="padding:76px 0 60px;">
+  <div class="wrap" style="max-width:720px;">
+    <div class="eyebrow" style="margin-bottom:16px;">Faith-based gifts for couples</div>
+    <h1 style="font-size:clamp(38px,5.4vw,58px);margin-bottom:20px;">Crowned by God.<br><span class="script">United by love.</span></h1>
+    <p style="color:var(--plum-soft);font-size:16px;margin-bottom:28px;max-width:44ch;">Apparel, drinkware, and keepsakes for couples who put faith at the center of their love story — printed to order, one piece at a time.</p>
+    <a href="#shop" class="btn btn-solid">Shop the collection</a>
+  </div>
+</section>
+
+<section id="shop">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="eyebrow" style="margin-bottom:8px;">Best sellers</div><h2>Made for two</h2></div>
+      <p>Every piece is printed to order and finished by hand.</p>
+    </div>
+    <div id="product-grid" class="grid">
+      <p class="state-msg">Loading the collection…</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-bottom">
+      <div>© 2026 Crowned In Love. Crowned by God, united by love.</div>
+      <div>Fulfilled by Printify</div>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/cart.js"></script>
+<script>
+  async function loadProducts() {
+    const grid = document.getElementById('product-grid');
+    try {
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      if (!Array.isArray(products) || products.length === 0) {
+        grid.innerHTML = '<p class="state-msg">No products published yet — publish products in Printify to see them here.</p>';
+        return;
+      }
+      grid.innerHTML = products.map(p => {
+        const image = p.images?.[0]?.src || '';
+        const variant = p.variants?.find(v => v.is_enabled) || p.variants?.[0];
+        const price = variant ? (variant.price / 100).toFixed(2) : '—';
+        return `
+          <a class="card" href="/product.html?id=${p.id}">
+            <div class="card-art">${image ? `<img src="${image}" alt="${p.title}">` : ''}</div>
+            <div class="card-body">
+              <div class="card-title">${p.title}</div>
+              <div class="card-foot"><span class="price">$${price}</span></div>
+            </div>
+          </a>`;
+      }).join('');
+    } catch (err) {
+      grid.innerHTML = `<p class="state-msg">Couldn't load products right now. (${err.message})</p>`;
+    }
+  }
+  loadProducts();
+</script>
+
+</body>
+</html>
