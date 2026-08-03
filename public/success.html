@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crowned In Love — Order confirmed</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="/" class="logo">
+        <svg class="crest" width="26" height="26" viewBox="0 0 60 60"><circle class="ring" cx="30" cy="30" r="27"/><path d="M18 26 L24 34 L30 20 L36 34 L42 26 L40 40 L20 40 Z" fill="var(--gold)"/></svg>
+        Crowned In Love
+      </a>
+    </nav>
+  </div>
+</header>
+
+<section style="text-align:center;padding:100px 0;">
+  <div class="wrap" style="max-width:520px;">
+    <div id="status-icon" style="font-size:40px;margin-bottom:20px;">⏳</div>
+    <h1 id="status-title" style="font-size:30px;margin-bottom:14px;">Confirming your order…</h1>
+    <p id="status-body" style="color:var(--plum-soft);">We're sending your order to production. This usually takes a few seconds.</p>
+    <a href="/#shop" class="btn btn-line" style="margin-top:30px;">Continue shopping</a>
+  </div>
+</section>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const orderId = params.get('order_id');
+  let attempts = 0;
+
+  async function poll() {
+    if (!orderId) {
+      document.getElementById('status-title').textContent = 'Order reference missing';
+      document.getElementById('status-body').textContent = 'If you completed payment, check your email for confirmation.';
+      return;
+    }
+    if (attempts++ > 15) {
+      document.getElementById('status-icon').textContent = '⏳';
+      document.getElementById('status-title').textContent = 'Still processing';
+      document.getElementById('status-body').textContent = "Your payment went through. It's taking a little longer than usual to confirm with our print partner — you'll get an email once it's submitted.";
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/order/${orderId}`);
+      const data = await res.json();
+
+      if (data.status === 'submitted') {
+        localStorage.removeItem('cil_cart');
+        document.getElementById('status-icon').textContent = '💛';
+        document.getElementById('status-title').textContent = 'Order confirmed';
+        document.getElementById('status-body').textContent = `Your order is in production. Confirmation #${data.printify_order_id}.`;
+        return;
+      }
+      if (data.status === 'failed') {
+        document.getElementById('status-icon').textContent = '⚠️';
+        document.getElementById('status-title').textContent = "Payment received, order needs a look";
+        document.getElementById('status-body').textContent = "Your payment succeeded, but we hit a snag sending it to production. We'll follow up by email shortly — no need to pay again.";
+        return;
+      }
+      setTimeout(poll, 2000);
+    } catch {
+      setTimeout(poll, 2000);
+    }
+  }
+  poll();
+</script>
+
+</body>
+</html>
