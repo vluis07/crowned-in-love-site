@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crowned In Love — Cart</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .line{display:grid;grid-template-columns:80px 1fr auto auto;gap:16px;align-items:center;padding:18px 0;border-bottom:1px solid var(--line);}
+  .line img{width:80px;height:80px;object-fit:cover;border-radius:4px;background:var(--blush);}
+  .qty{display:flex;align-items:center;gap:10px;}
+  .qty button{width:28px;height:28px;border:1px solid var(--line);background:#fff;border-radius:50%;cursor:pointer;}
+  .cart-total{display:flex;justify-content:space-between;padding:24px 0;font-family:'Playfair Display',serif;font-size:20px;}
+  input[type=email]{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius);font-family:'Poppins',sans-serif;font-size:14px;margin-bottom:16px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="/" class="logo">
+        <svg class="crest" width="26" height="26" viewBox="0 0 60 60"><circle class="ring" cx="30" cy="30" r="27"/><path d="M18 26 L24 34 L30 20 L36 34 L42 26 L40 40 L20 40 Z" fill="var(--gold)"/></svg>
+        Crowned In Love
+      </a>
+      <div class="nav-links"><a href="/#shop">Shop</a></div>
+      <div class="nav-actions">
+        <a href="/cart.html" class="icon-btn" aria-label="Cart">♡<span class="cart-badge" data-cart-count>0</span></a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section>
+  <div class="wrap" style="max-width:720px;">
+    <h1 style="font-size:32px;margin-bottom:30px;">Your cart</h1>
+    <div id="cart-lines"></div>
+    <div id="cart-total" class="cart-total" style="display:none;">
+      <span>Total</span><span id="total-amount"></span>
+    </div>
+    <div id="checkout-block" style="display:none;">
+      <label for="email" style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--plum-soft);display:block;margin-bottom:8px;">Email (for order updates)</label>
+      <input type="email" id="email" placeholder="you@email.com" required>
+      <button class="btn btn-solid" id="checkout-btn" style="width:100%;justify-content:center;">Checkout with Stripe</button>
+      <p id="checkout-error" style="color:var(--rose-deep);font-size:13px;margin-top:12px;"></p>
+    </div>
+  </div>
+</section>
+
+<script src="/js/cart.js"></script>
+<script>
+  function render() {
+    const cart = getCart();
+    const linesEl = document.getElementById('cart-lines');
+    const totalEl = document.getElementById('cart-total');
+    const checkoutBlock = document.getElementById('checkout-block');
+
+    if (cart.length === 0) {
+      linesEl.innerHTML = '<p class="state-msg">Your cart is empty. <a href="/#shop" style="color:var(--rose-deep);">Browse the collection →</a></p>';
+      totalEl.style.display = 'none';
+      checkoutBlock.style.display = 'none';
+      return;
+    }
+
+    linesEl.innerHTML = cart.map(item => `
+      <div class="line">
+        <img src="${item.image || ''}" alt="">
+        <div>
+          <div style="font-weight:500;">${item.title}</div>
+          <div style="color:var(--plum-soft);font-size:13px;">$${item.price.toFixed(2)}</div>
+        </div>
+        <div class="qty">
+          <button data-action="dec" data-pid="${item.product_id}" data-vid="${item.variant_id}">–</button>
+          <span>${item.quantity}</span>
+          <button data-action="inc" data-pid="${item.product_id}" data-vid="${item.variant_id}">+</button>
+        </div>
+        <div style="font-weight:600;">$${(item.price * item.quantity).toFixed(2)}</div>
+      </div>
+    `).join('');
+
+    totalEl.style.display = 'flex';
+    document.getElementById('total-amount').textContent = `$${cartTotal(cart).toFixed(2)}`;
+    checkoutBlock.style.display = 'block';
+
+    linesEl.querySelectorAll('button[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const { pid, vid, action } = btn.dataset;
+        const current = getCart().find(i => i.product_id === pid && i.variant_id == vid);
+        const nextQty = action === 'inc' ? current.quantity + 1 : current.quantity - 1;
+        updateQuantity(pid, Number(vid), nextQty);
+        render();
+      });
+    });
+  }
+
+  document.getElementById('checkout-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('checkout-btn');
+    const errorEl = document.getElementById('checkout-error');
+    const email = document.getElementById('email').value;
+    errorEl.textContent = '';
+
+    if (!email) {
+      errorEl.textContent = 'Enter an email so we can send order updates.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Redirecting to checkout…';
+
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: getCart(), email })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      location.href = data.url;
+    } catch (err) {
+      errorEl.textContent = `Checkout failed: ${err.message}`;
+      btn.disabled = false;
+      btn.textContent = 'Checkout with Stripe';
+    }
+  });
+
+  render();
+</script>
+
+</body>
+</html>
